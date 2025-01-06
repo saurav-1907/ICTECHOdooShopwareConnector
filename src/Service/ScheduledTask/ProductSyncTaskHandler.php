@@ -38,7 +38,6 @@ class ProductSyncTaskHandler extends ScheduledTaskHandler
         if ($odooUrl !== "null" && $odooToken) {
             $productDataArray = $this->fetchProductData($context);
             if ($productDataArray) {
-                dd($productDataArray);
                 foreach ($productDataArray as $product) {
                     $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $product);
                     if ($apiResponseData['result']) {

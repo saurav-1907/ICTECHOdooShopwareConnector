@@ -50,7 +50,6 @@ class CurrencySubscriber implements EventSubscriberInterface
                     $currencyId = $writeResult->getPrimaryKey();
                     if ($currencyId) {
                         $currency = $this->findCurrencyData($currencyId, $event);
-                        dd($currency);
                         if ($currency) {
                             $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $currency);
                             if ($apiResponseData['result']) {

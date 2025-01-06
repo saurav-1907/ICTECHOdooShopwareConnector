@@ -21,14 +21,18 @@ class CustomFieldsInstaller
     private const ODOO_SHOPWARE_ORDER = 'odoo_order';
     private const ODOO_SHOPWARE_CUSTOMER_GROUP = 'odoo_customer_group';
     private const ODOO_SHOPWARE_SHIPPING_METHOD = 'odoo_shipping_method';
+    private const ODOO_SHOPWARE_CURRENCY = 'odoo_currency';
+    private const ODOO_SHOPWARE_TAX = 'odoo_tax';
     private const CUSTOM_FIELDSET_NAME = [
         'odoo_product',
         'odoo_category',
-        'odoo_manufacturer',
+        'shopware_product_brand',
         'odoo_customer',
         'odoo_order',
         'odoo_customer_group',
         'odoo_shipping_method',
+        'odoo_currency',
+        'odoo_tax',
     ];
     private const CUSTOM_FIELDSET = [
         [
@@ -433,7 +437,121 @@ class CustomFieldsInstaller
                     'entityName' => 'shipping_method',
                 ],
             ],
-        ]
+        ],
+        [
+            'name' => self::ODOO_SHOPWARE_CURRENCY,
+            'position' => 1,
+            'config' => [
+                'label' => [
+                    'de-DE' => 'Odoo Währung',
+                    'en-GB' => 'Odoo Currency'
+                ],
+                'translated' => true,
+            ],
+            'customFields' => [
+                [
+                    'name' => self::ODOO_SHOPWARE_CURRENCY . self::ID,
+                    'type' => CustomFieldTypes::INT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Currency Id',
+                            'de-DE' => 'Odoo Währung Id',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Currency Id'
+                        ],
+                        'customFieldType' => 'int',
+                        'customFieldPosition' => 1
+                    ],
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_CURRENCY . self::ERROR,
+                    'type' => CustomFieldTypes::TEXT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Currency Error',
+                            'de-DE' => 'Odoo Währung Fehler',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Currency Error'
+                        ],
+                        'customFieldType' => 'text',
+                        'customFieldPosition' => 2
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_CURRENCY . self::UPDATEAT,
+                    'type' => CustomFieldTypes::DATETIME,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Last Update Time',
+                            'de-DE' => 'Letzte Aktualisierungszeit',
+                            Defaults::LANGUAGE_SYSTEM => 'Last Update Time'
+                        ],
+                        'customFieldType' => 'date',
+                        'customFieldPosition' => 3
+                    ]
+                ],
+            ],
+            'relations' => [
+                [
+                    'entityName' => 'shipping_method',
+                ],
+            ],
+        ],
+        [
+            'name' => self::ODOO_SHOPWARE_TAX,
+            'position' => 1,
+            'config' => [
+                'label' => [
+                    'de-DE' => 'Odoo Steuer ',
+                    'en-GB' => 'Odoo Tax'
+                ],
+                'translated' => true,
+            ],
+            'customFields' => [
+                [
+                    'name' => self::ODOO_SHOPWARE_TAX . self::ID,
+                    'type' => CustomFieldTypes::INT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Tax Id',
+                            'de-DE' => 'Odoo Steuer n Id',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Tax Id'
+                        ],
+                        'customFieldType' => 'int',
+                        'customFieldPosition' => 1
+                    ],
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_TAX . self::ERROR,
+                    'type' => CustomFieldTypes::TEXT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Tax Error',
+                            'de-DE' => 'Odoo Steuer n Fehler',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Tax Error'
+                        ],
+                        'customFieldType' => 'text',
+                        'customFieldPosition' => 2
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_TAX . self::UPDATEAT,
+                    'type' => CustomFieldTypes::DATETIME,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Last Update Time',
+                            'de-DE' => 'Letzte Aktualisierungszeit',
+                            Defaults::LANGUAGE_SYSTEM => 'Last Update Time'
+                        ],
+                        'customFieldType' => 'date',
+                        'customFieldPosition' => 3
+                    ]
+                ],
+            ],
+            'relations' => [
+                [
+                    'entityName' => 'shipping_method',
+                ],
+            ],
+        ],
     ];
 
     public function __construct(

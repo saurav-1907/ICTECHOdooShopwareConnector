@@ -50,7 +50,6 @@ class CategorySubscriber implements EventSubscriberInterface
                     $categoryId = $writeResult->getPrimaryKey();
                     if ($categoryId) {
                         $category = $this->findCategoryData($categoryId, $event);
-                        dd($category);
                         if ($category) {
                             $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $category);
                             if ($apiResponseData['result']) {

@@ -6,67 +6,6 @@
 
     <services>
         <!-- Subscriber -->
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\CategorySubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="category.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\CurrencySubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="currency.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\CustomerGroupSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="customer_group.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\DeliveryTimeSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="delivery_time.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ProductManufacturerSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="product_manufacturer.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\SalesChannelSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="sales_channel.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ProductSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="product.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ShippingMethodSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="shipping_method.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\LanguageSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="language.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ShippingMethodSubscriber" public="true">
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
-            <argument type="service" id="shipping_method.repository"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
         <service id="ICTECHOdooShopwareConnector\Subscriber\CustomerSubscriber" public="true">
             <argument type="service" id="ICTECHOdooShopwareConnector\RestApi\OdooClient"/>
             <tag name="kernel.event_subscriber"/>
@@ -87,6 +26,54 @@
         <service id="ICTECHOdooShopwareConnector\Subscriber\OrderUpdateSubscriber" public="true">
             <argument type="service" id="order.repository"/>
             <argument type="service" id="ICTECHOdooShopwareConnector\Controller\ApiController"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ProductSubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="product.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\CategorySubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="category.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ProductManufacturerSubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="product_manufacturer.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\CustomerGroupSubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="customer_group.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ShippingMethodSubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="shipping_method.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <!--        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\LanguageSubscriber" public="true">-->
+        <!--            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>-->
+        <!--            <argument type="service" id="language.repository"/>-->
+        <!--            <tag name="kernel.event_subscriber"/>-->
+        <!--        </service>-->
+
+        <!--        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\ShippingSubscriber" public="true">-->
+        <!--            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>-->
+        <!--            <argument type="service" id="shipping_method.repository"/>-->
+        <!--            <tag name="kernel.event_subscriber"/>-->
+        <!--        </service>-->
+
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\CurrencySubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="currency.repository"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

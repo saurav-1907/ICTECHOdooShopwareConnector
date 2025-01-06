@@ -48,25 +48,14 @@
             <tag name="messenger.message_handler" />
         </service>
 
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\CustomerGroupSyncTask">
+        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\ProductSyncTask">
             <tag name="shopware.scheduled.task" />
         </service>
 
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\CustomerGroupSyncTaskHandler">
+        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\ProductSyncTaskHandler">
             <argument type="service" id="scheduled_task.repository" />
             <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
-            <argument type="service" id="customer_group.repository" />
-            <tag name="messenger.message_handler" />
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\DeliveryTimeSyncTask">
-            <tag name="shopware.scheduled.task" />
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\DeliveryTimeSyncTaskHandler">
-            <argument type="service" id="scheduled_task.repository" />
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
-            <argument type="service" id="delivery_time.repository" />
+            <argument type="service" id="product.repository" />
             <tag name="messenger.message_handler" />
         </service>
 
@@ -81,25 +70,14 @@
             <tag name="messenger.message_handler" />
         </service>
 
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\ProductSyncTask">
+        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\CustomerGroupSyncTask">
             <tag name="shopware.scheduled.task" />
         </service>
 
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\ProductSyncTaskHandler">
+        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\CustomerGroupSyncTaskHandler">
             <argument type="service" id="scheduled_task.repository" />
             <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
-            <argument type="service" id="product.repository" />
-            <tag name="messenger.message_handler" />
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\SalesChannelSyncTask">
-            <tag name="shopware.scheduled.task" />
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\SalesChannelSyncTaskHandler">
-            <argument type="service" id="scheduled_task.repository" />
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
-            <argument type="service" id="sales_channel.repository" />
+            <argument type="service" id="customer_group.repository" />
             <tag name="messenger.message_handler" />
         </service>
 
@@ -111,17 +89,6 @@
             <argument type="service" id="scheduled_task.repository" />
             <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
             <argument type="service" id="shipping_method.repository" />
-            <tag name="messenger.message_handler" />
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\TaxSyncTask">
-            <tag name="shopware.scheduled.task" />
-        </service>
-
-        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\TaxSyncTaskHandler">
-            <argument type="service" id="scheduled_task.repository" />
-            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
-            <argument type="service" id="tax.repository" />
             <tag name="messenger.message_handler" />
         </service>
 

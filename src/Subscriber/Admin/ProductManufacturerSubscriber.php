@@ -57,8 +57,7 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
                                 $productManufacturerToUpsert = [];
                                 if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                     foreach ($apiData['data'] as $apiItem) {
-                                        $productManufacturerData = $this->buildproductManufacturerData($apiItem);
-                                        dd($productManufacturerData);
+                                        $productManufacturerData = $this->buildProductManufacturerData($apiItem, $productManufacturerId);
                                         if ($productManufacturerData) {
                                             $productManufacturerToUpsert[] = $productManufacturerData;
                                         }
@@ -108,7 +107,7 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
                             $apiData = $apiResponseData['result'];
                             if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
-                                    $productManufacturerData = $this->buildProductManufacturerData($apiItem);
+                                    $productManufacturerData = $this->buildProductManufacturerData($apiItem, $productManufacturerId);
                                     if ($productManufacturerData) {
                                         $this->productManufacturerRepository->upsert([$productManufacturerData], $context);
                                     }
@@ -155,13 +154,14 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
         return $this->productManufacturerRepository->search($criteria, $event->getContext())->first();
     }
 
-    private function buildProductManufacturerData($apiItem): ?array
+    private function buildProductManufacturerData($apiItem, $productManufacturerId): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_shopware_productManufacturerId'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_brandId'])) {
             return [
-                "id" => $apiItem['id'],
+                "id" => $productManufacturerId,
                 'customFields' => [
-                    'shopware_product_brand_id' => $apiItem['odoo_shopware_productManufacturerId'],
+                    'shopware_product_brand_id' => $apiItem['odoo_shopware_brandId'],
+                    'shopware_product_brand_update_time' => date('Y-m-d H:i'),
                 ],
             ];
         }
@@ -170,11 +170,11 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
 
     private function buildProductManufacturerErrorData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['shopware_product_brand_error'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_brandError'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'shopware_product_brand_error' => $apiItem['shopware_product_brand_error'],
+                    'shopware_product_brand_error' => $apiItem['odoo_shopware_brandError'],
                 ],
             ];
         }

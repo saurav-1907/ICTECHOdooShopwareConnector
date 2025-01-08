@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CurrencySubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/res.currency';
+    private const DELETEMODULE = '/delete/res.currency';
     private static $isProcessingCurrencyEvent = false;
 
     public function __construct(
@@ -146,7 +147,7 @@ class CurrencySubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingCurrencyEvent) {

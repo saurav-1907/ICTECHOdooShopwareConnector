@@ -5,22 +5,23 @@ namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 use Exception;
 use GuzzleHttp\Client;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
-use Shopware\Core\Content\Category\CategoryEvents;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\System\SalesChannel\SalesChannelEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class SalesChannelSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.sales.channel';
-    private static $isProcessingCategoryEvent = false;
+    private const DELETEMODULE = '/delete/shopware.sales.channel';
+    private static $isProcessingSalesChannelEvent = false;
 
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
-        private readonly EntityRepository $categoryRepository,
+        private readonly EntityRepository $salesChannelRepository,
     )
     {
         $this->client = new Client();
@@ -29,62 +30,61 @@ class SalesChannelSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            CategoryEvents::CATEGORY_WRITTEN_EVENT => 'onCategoryWritten',
-            CategoryEvents::CATEGORY_DELETED_EVENT => 'onCategoryDelete',
+            SalesChannelEvents::SALES_CHANNEL_WRITTEN => 'onSalesChannelWritten',
+            SalesChannelEvents::SALES_CHANNEL_DELETED => 'onSalesChannelDelete',
         ];
     }
 
-    public function onCategoryWritten(EntityWrittenEvent $event): void
+    public function onSalesChannelWritten(EntityWrittenEvent $event): void
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
         $odooUrl = $odooUrlData . self::MODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            if (self::$isProcessingCategoryEvent) {
+            if (self::$isProcessingSalesChannelEvent) {
                 return;
             }
-            self::$isProcessingCategoryEvent = true;
+            self::$isProcessingSalesChannelEvent = true;
             try {
                 foreach ($event->getWriteResults() as $writeResult) {
-                    $categoryId = $writeResult->getPrimaryKey();
-                    if ($categoryId) {
-                        $category = $this->findCategoryData($categoryId, $event);
-                        dd($category);
-                        if ($category) {
-                            $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $category);
+                    $salesChannelId = $writeResult->getPrimaryKey();
+                    if ($salesChannelId) {
+                        $salesChannel = $this->findSalesChannelData($salesChannelId, $event);
+                        if ($salesChannel) {
+                            $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $salesChannel);
                             if ($apiResponseData['result']) {
                                 $apiData = $apiResponseData['result'];
-                                $categoriesToUpsert = [];
+                                $salesChannelToUpsert = [];
                                 if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                     foreach ($apiData['data'] as $apiItem) {
-                                        $categoryData = $this->buildCategoryData($apiItem);
-                                        if ($categoryData) {
-                                            $categoriesToUpsert[] = $categoryData;
+                                        $salesChannelData = $this->buildSalesChannelData($apiItem);
+                                        if ($salesChannelData) {
+                                            $salesChannelToUpsert[] = $salesChannelData;
                                         }
                                     }
                                 } else {
                                     foreach ($apiData['data'] ?? [] as $apiItem) {
-                                        $categoryData = $this->buildCategoryErrorData($apiItem);
-                                        if ($categoryData) {
-                                            $categoriesToUpsert[] = $categoryData;
+                                        $salesChannelData = $this->buildSalesChannelErrorData($apiItem);
+                                        if ($salesChannelData) {
+                                            $salesChannelToUpsert[] = $salesChannelData;
                                         }
                                     }
                                 }
-                                if (!empty($categoriesToUpsert)) {
-                                    $this->categoryRepository->upsert($categoriesToUpsert, $context);
+                                if (!empty($salesChannelToUpsert)) {
+                                    $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
                                 }
                             }
                         }
                     }
                 }
             } finally {
-                self::$isProcessingCategoryEvent = false;
+                self::$isProcessingSalesChannelEvent = false;
             }
         }
     }
 
-    public function findCategoryData($categoryId, $event): ?Entity
+    public function findSalesChannelData($salesChannelId, $event): ?Entity
     {
         $criteria = new Criteria();
         $criteria->addAssociation('translations');
@@ -92,11 +92,11 @@ class SalesChannelSubscriber implements EventSubscriberInterface
         $criteria->addAssociation('navigationSalesChannels');
         $criteria->addAssociation('footerSalesChannels');
         $criteria->addAssociation('serviceSalesChannels');
-        $criteria->addFilter(new EqualsFilter('id', $categoryId));
-        return $this->categoryRepository->search($criteria, $event->getContext())->first();
+        $criteria->addFilter(new EqualsFilter('id', $salesChannelId));
+        return $this->salesChannelRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $category)
+    public function checkApiAuthentication($apiUrl, $odooToken, $salesChannel)
     {
         try {
             $apiResponseData = $this->client->post(
@@ -106,7 +106,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                         'Content-Type' => 'application/json',
                         'Access-Token' => $odooToken,
                     ],
-                    'json' => $category,
+                    'json' => $salesChannel,
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
@@ -118,60 +118,60 @@ class SalesChannelSubscriber implements EventSubscriberInterface
         }
     }
 
-    private function buildCategoryData($apiItem): ?array
+    private function buildSalesChannelData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_shopware_categoryId'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_salesChannelId'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_category_id' => $apiItem['odoo_shopware_categoryId'],
-                    'odoo_category_update_time' => date("Y-m-d H:i"),
+                    'odoo_salesChannel_id' => $apiItem['odoo_shopware_salesChannelId'],
+                    'odoo_salesChannel_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
         return null;
     }
 
-    private function buildCategoryErrorData($apiItem): ?array
+    private function buildSalesChannelErrorData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_category_error'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_salesChannel_error'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_category_error' => $apiItem['odoo_category_error'],
+                    'odoo_salesChannel_error' => $apiItem['odoo_salesChannel_error'],
                 ],
             ];
         }
         return null;
     }
 
-    public function onCategoryDelete(EntityWrittenEvent $event): void
+    public function onSalesChannelDelete(EntityWrittenEvent $event): void
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            if (self::$isProcessingCategoryEvent) {
+            if (self::$isProcessingSalesChannelEvent) {
                 return;
             }
-            self::$isProcessingCategoryEvent = true;
+            self::$isProcessingSalesChannelEvent = true;
             try {
                 foreach ($event->getWriteResults() as $writeResult) {
-                    $categoryId = $writeResult->getPrimaryKey();
-                    if ($categoryId) {
-                        $deleteCategoryData = [
-                            'shopwareId' => $categoryId,
+                    $salesChannelId = $writeResult->getPrimaryKey();
+                    if ($salesChannelId) {
+                        $deleteSalesChannelData = [
+                            'shopwareId' => $salesChannelId,
                             'operation' => $writeResult->getOperation(),
                         ];
-                        $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteCategoryData);
+                        $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteSalesChannelData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
                             if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
-                                    $categoryData = $this->buildCategoryErrorData($apiItem);
-                                    if ($categoryData) {
-                                        $this->categoryRepository->upsert([$categoryData], $context);
+                                    $salesChannelData = $this->buildSalesChannelErrorData($apiItem);
+                                    if ($salesChannelData) {
+                                        $this->salesChannelRepository->upsert([$salesChannelData], $context);
                                     }
                                 }
                             }
@@ -179,7 +179,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                     }
                 }
             } finally {
-                self::$isProcessingCategoryEvent = false;
+                self::$isProcessingSalesChannelEvent = false;
             }
         }
     }

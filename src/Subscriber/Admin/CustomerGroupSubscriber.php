@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CustomerGroupSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.customer.group';
+    private const DELETEMODULE = '/delete/shopware.customer.group';
     private static $isProcessingCustomerGroupEvent = false;
 
     public function __construct(
@@ -146,7 +147,7 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingCustomerGroupEvent) {

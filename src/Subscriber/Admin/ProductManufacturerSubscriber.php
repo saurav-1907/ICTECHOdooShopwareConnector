@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ProductManufacturerSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/product.brand';
+    private const DELETEMODULE = '/delete/product.brand';
     private static $isProcessingProductManufacturerEvent = false;
 
     public function __construct(
@@ -87,7 +88,7 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingProductManufacturerEvent) {

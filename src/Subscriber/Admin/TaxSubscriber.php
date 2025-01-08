@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class TaxSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.tax';
+    private const DELETEMODULE = '/delete/shopware.tax';
     private static $isProcessingTaxEvent = false;
 
     public function __construct(
@@ -148,7 +149,7 @@ class TaxSubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingTaxEvent) {

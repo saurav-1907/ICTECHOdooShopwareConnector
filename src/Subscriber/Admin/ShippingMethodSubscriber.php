@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ShippingMethodSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shipping.method';
+    private const DELETEMODULE = '/delete/shipping.method';
     private static $isProcessingShippingMethodEvent = false;
 
     public function __construct(
@@ -149,7 +150,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingShippingMethodEvent) {

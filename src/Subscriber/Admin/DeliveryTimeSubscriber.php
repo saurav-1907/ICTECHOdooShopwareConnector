@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class DeliveryTimeSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.delivery.time';
+    private const DELETEMODULE = '/delete/shopware.delivery.time';
     private static $isProcessingCategoryEvent = false;
 
     public function __construct(
@@ -150,7 +151,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingCategoryEvent) {

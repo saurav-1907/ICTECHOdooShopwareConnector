@@ -17,6 +17,7 @@ class ProductSubscriber implements EventSubscriberInterface
 {
 
     private const MODULE = '/modify/shopware.product';
+    private const DELETEMODULE = '/delete/shopware.product';
     private static $isProcessingProductEvent = false;
 
     public function __construct(
@@ -192,7 +193,7 @@ class ProductSubscriber implements EventSubscriberInterface
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooUrl = $odooUrlData . self::MODULE;
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             if (self::$isProcessingProductEvent) {

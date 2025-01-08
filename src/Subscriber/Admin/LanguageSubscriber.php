@@ -180,7 +180,7 @@ class LanguageSubscriber implements EventSubscriberInterface
 
     public function checkApiAuthentication($odooUrl, $odooToken, $language)
     {
-        $apiResponse = $this->client->get(
+        $apiResponse = $this->client->post(
             $odooUrl,
             [
                 'headers' => [

@@ -15,7 +15,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class CurrencySubscriber implements EventSubscriberInterface
 {
-    private const MODULE = '/modify/shopware.currency';
+    private const MODULE = '/modify/res.currency';
     private static $isProcessingCurrencyEvent = false;
 
     public function __construct(

@@ -5,7 +5,7 @@ namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 use Exception;
 use GuzzleHttp\Client;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
-use Shopware\Core\Content\Category\CategoryEvents;
+use Shopware\Core\Checkout\Order\OrderEvents;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
@@ -29,13 +29,14 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            CategoryEvents::CATEGORY_WRITTEN_EVENT => 'onCategoryWritten',
-            CategoryEvents::CATEGORY_DELETED_EVENT => 'onCategoryDelete',
+            'delivery.loaded' => 'onOrderDeliveryWritten',
+            OrderEvents::ORDER_DELIVERY_DELETED_EVENT => 'onOrderDeliveryDelete',
         ];
     }
 
-    public function onCategoryWritten(EntityWrittenEvent $event): void
+    public function onOrderDeliveryWritten(EntityWrittenEvent $event): void
     {
+        dd($event);
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
         $odooUrl = $odooUrlData . self::MODULE;
@@ -145,7 +146,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
         return null;
     }
 
-    public function onCategoryDelete(EntityWrittenEvent $event): void
+    public function onOrderDeliveryDelete(EntityWrittenEvent $event): void
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);

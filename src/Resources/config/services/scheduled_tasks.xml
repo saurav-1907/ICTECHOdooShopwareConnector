@@ -48,6 +48,17 @@
             <tag name="messenger.message_handler" />
         </service>
 
+        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\LanguageSyncTask">
+            <tag name="shopware.scheduled.task" />
+        </service>
+
+        <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\LanguageSyncTaskHandler">
+            <argument type="service" id="scheduled_task.repository" />
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig" />
+            <argument type="service" id="language.repository" />
+            <tag name="messenger.message_handler" />
+        </service>
+
         <service id="ICTECHOdooShopwareConnector\Service\ScheduledTask\CustomerGroupSyncTask">
             <tag name="shopware.scheduled.task" />
         </service>

@@ -13,7 +13,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class LanguageSubscriber implements EventSubscriberInterface
 {
-    private static $isProcessingCategoryWrittenEvent = false;
+    private const MODULE = '/modify/shopware.language';
+    private const DELETEMODULE = '/delete/shopware.language';
+    private static $isProcessingLanguage = false;
 
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
@@ -34,13 +36,14 @@ class LanguageSubscriber implements EventSubscriberInterface
     public function onLanguageWritten(EntityWrittenEvent $event): void
     {
         $context = $event->getContext();
-        $odooUrl = $this->pluginConfig->fetchPluginConfigUrlData($context);
-        $odooToken = $this->pluginConfig->getOdooAccessToken($context);
+        $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
+        $odooUrl = $odooUrlData . self::MODULE;
+        $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            if (self::$isProcessingCategoryWrittenEvent) {
+            if (self::$isProcessingLanguage) {
                 return;
             }
-            self::$isProcessingCategoryWrittenEvent = true;
+            self::$isProcessingLanguage = true;
             try {
                 foreach ($event->getWriteResults() as $writeResult) {
                     $languageId = $writeResult->getPrimaryKey();
@@ -48,19 +51,64 @@ class LanguageSubscriber implements EventSubscriberInterface
                         $updateDataLanguageId = $event->getContext()->getLanguageId();
                         $language = $this->findLanguageData($languageId, $updateDataLanguageId, $event);
                         if ($language) {
-                            $language['operation'] = $writeResult->getOperation();
-                            $languageProcessed = [
-                                'language_data' => $language
-                            ];
-                            $json = json_encode($languageProcessed, JSON_PRETTY_PRINT);
+                            $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $language);
+                            dd($apiResponseData, $odooUrl);
+                            if ($apiResponseData['result']) {
+                                $apiData = $apiResponseData['result'];
+                                $languagesToUpsert = [];
+                                if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                                    foreach ($apiData['data'] as $apiItem) {
+                                        $languageData = $this->buildLanguageData($apiItem);
+                                        if ($languageData) {
+                                            $languagesToUpsert[] = $languageData;
+                                        }
+                                    }
+                                } else {
+                                    foreach ($apiData['data'] ?? [] as $apiItem) {
+                                        $languageData = $this->buildLanguageErrorData($apiItem);
+                                        if ($languageData) {
+                                            $languagesToUpsert[] = $languageData;
+                                        }
+                                    }
+                                }
+                                if (!empty($languagesToUpsert)) {
+                                    $this->languageRepository->upsert($languagesToUpsert, $context);
+                                }
+                            }
                         }
                     }
                 }
-                dd($json);
             } finally {
-                self::$isProcessingCategoryWrittenEvent = false;
+                self::$isProcessingLanguage = false;
             }
         }
+    }
+
+    private function buildLanguageData($apiItem): ?array
+    {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_languageId'])) {
+            return [
+                "id" => $apiItem['id'],
+                'customFields' => [
+                    'odoo_language_id' => $apiItem['odoo_shopware_languageId'],
+                    'odoo_language_update_time' => date("Y-m-d H:i"),
+                ],
+            ];
+        }
+        return null;
+    }
+
+    private function buildLanguageErrorData($apiItem): ?array
+    {
+        if (isset($apiItem['id'], $apiItem['odoo_language_error'])) {
+            return [
+                "id" => $apiItem['id'],
+                'customFields' => [
+                    'odoo_language_error' => $apiItem['odoo_language_error'],
+                ],
+            ];
+        }
+        return null;
     }
 
     public function findLanguageData($languageId, $updateDataLanguageId, $event): ?array
@@ -93,32 +141,53 @@ class LanguageSubscriber implements EventSubscriberInterface
 
     public function onLanguageDelete(EntityWrittenEvent $event): void
     {
-        $languageProcessed = [];
-        foreach ($event->getWriteResults() as $writeResult) {
-            $languageId = $writeResult->getPrimaryKey();
-            if ($languageId) {
-                $language = [
-                    'shopwareLanguageId' => $languageId,
-                    'operation' => $writeResult->getOperation(),
-                ];
-                $languageProcessed = [
-                    'language_data' => $language
-                ];
-                $json = json_encode($languageProcessed, JSON_PRETTY_PRINT);
+        $context = $event->getContext();
+        $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
+        $odooToken = $this->pluginConfig->getOdooAccessToken();
+        if ($odooUrl !== "null" && $odooToken) {
+            if (self::$isProcessingLanguage) {
+                return;
             }
-            dd($json);
+            self::$isProcessingLanguage = true;
+            try {
+                foreach ($event->getWriteResults() as $writeResult) {
+                    $languageId = $writeResult->getPrimaryKey();
+                    if ($languageId) {
+                        $deleteLanguageData = [
+                            'shopwareId' => $languageId,
+                            'operation' => $writeResult->getOperation(),
+                        ];
+                        $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteLanguageData);
+                        if ($apiResponseData['result']) {
+                            $apiData = $apiResponseData['result'];
+                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                                foreach ($apiData['data'] as $apiItem) {
+                                    $languageData = $this->buildLanguageErrorData($apiItem);
+                                    if ($languageData) {
+                                        $this->languageRepository->upsert([$languageData], $context);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                self::$isProcessingLanguage = false;
+            }
         }
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken)
+    public function checkApiAuthentication($odooUrl, $odooToken, $language)
     {
         $apiResponse = $this->client->get(
-            $apiUrl,
+            $odooUrl,
             [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Access-Token' => $odooToken
                 ],
+                'json' => $language,
             ]
         );
         return json_decode($apiResponse->getBody()->getContents());

@@ -67,6 +67,12 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\TaxSubscriber" public="true">
+            <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
+            <argument type="service" id="tax.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="ICTECHOdooShopwareConnector\Subscriber\CustomerSubscriber" public="true">
             <argument type="service" id="ICTECHOdooShopwareConnector\RestApi\OdooClient"/>
             <tag name="kernel.event_subscriber"/>

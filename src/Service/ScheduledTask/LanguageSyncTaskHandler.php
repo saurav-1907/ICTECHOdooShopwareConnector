@@ -12,15 +12,15 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTaskHandler;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AllowDynamicProperties] #[AsMessageHandler(handles: CurrencySyncTask::class)]
-class CurrencySyncTaskHandler extends ScheduledTaskHandler
+#[AllowDynamicProperties] #[AsMessageHandler(handles: LanguageSyncTask::class)]
+class LanguageSyncTaskHandler extends ScheduledTaskHandler
 {
-    private const MODULE = '/modify/res.currency';
+    private const MODULE = '/modify/shopware.language';
 
     public function __construct(
         EntityRepository                  $scheduledTaskRepository,
         private readonly PluginConfig     $pluginConfig,
-        private readonly EntityRepository $currencyRepository,
+        private readonly EntityRepository $languageRepository,
     )
     {
         parent::__construct($scheduledTaskRepository);
@@ -34,31 +34,31 @@ class CurrencySyncTaskHandler extends ScheduledTaskHandler
         $odooUrl = $odooUrlData . self::MODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            $currencyDataArray = $this->fetchCurrencyData($context);
-            if ($currencyDataArray) {
-                foreach ($currencyDataArray as $currency) {
-                    $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $currency);
-                    dd($apiResponseData);
+            $languageDataArray = $this->fetchLanguageData($context);
+            if ($languageDataArray) {
+                dd($languageDataArray);
+                foreach ($languageDataArray as $language) {
+                    $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $language);
                     if ($apiResponseData['result']) {
                         $apiData = $apiResponseData['result'];
                         $categoriesToUpsert = [];
                         if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                             foreach ($apiData['data'] as $apiItem) {
-                                $currencyData = $this->buildCurrencyData($apiItem);
-                                if ($currencyData) {
-                                    $categoriesToUpsert[] = $currencyData;
+                                $languageData = $this->buildLanguageData($apiItem);
+                                if ($languageData) {
+                                    $categoriesToUpsert[] = $languageData;
                                 }
                             }
                         } else {
                             foreach ($apiData['data'] ?? [] as $apiItem) {
-                                $currencyData = $this->buildCurrencyErrorData($apiItem);
-                                if ($currencyData) {
-                                    $categoriesToUpsert[] = $currencyData;
+                                $languageData = $this->buildLanguageErrorData($apiItem);
+                                if ($languageData) {
+                                    $categoriesToUpsert[] = $languageData;
                                 }
                             }
                         }
                         if (!empty($categoriesToUpsert)) {
-                            $this->currencyRepository->upsert($categoriesToUpsert, $context);
+                            $this->languageRepository->upsert($categoriesToUpsert, $context);
                         }
                     }
                 }
@@ -66,23 +66,20 @@ class CurrencySyncTaskHandler extends ScheduledTaskHandler
         }
     }
 
-    public function fetchCurrencyData($context)
+    public function fetchLanguageData($context)
     {
         $criteria = new Criteria();
         $criteria->addAssociation('translations');
-        $criteria->addAssociation('countryRoundings');
         $criteria->addAssociation('salesChannels');
-        $criteria->addAssociation('salesChannelDefaultAssignments');
-//        $criteria->addFilter(new EqualsFilter('updateAT',date()));
-//        $criteria->addFilter(new EqualsFilter('customFields.odoo_currency_id', null));
+//        $criteria->addFilter(new EqualsFilter('customFields.odoo_language_id', null));
 //        $criteria->addFilter(new NotFilter(
 //            MultiFilter::CONNECTION_AND,
-//            [new EqualsFilter('customFields.odoo_currency_error', null)]
+//            [new EqualsFilter('customFields.odoo_language_error', null)]
 //        ));
-        return $this->currencyRepository->search($criteria, $context)->getElements();
+        return $this->languageRepository->search($criteria, $context)->getElements();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $currency)
+    public function checkApiAuthentication($apiUrl, $odooToken, $language)
     {
         try {
             $apiResponseData = $this->client->post(
@@ -92,7 +89,7 @@ class CurrencySyncTaskHandler extends ScheduledTaskHandler
                         'Content-Type' => 'application/json',
                         'Access-Token' => $odooToken,
                     ],
-                    'json' => $currency,
+                    'json' => $language,
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
@@ -104,27 +101,27 @@ class CurrencySyncTaskHandler extends ScheduledTaskHandler
         }
     }
 
-    private function buildCurrencyData($apiItem): ?array
+    private function buildLanguageData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_shopware_currencyId'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_languageId'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_currency_id' => $apiItem['odoo_shopware_currencyId'],
-                    'odoo_currency_update_time' => date("Y-m-d H:i"),
+                    'odoo_language_id' => $apiItem['odoo_shopware_languageId'],
+                    'odoo_language_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
         return null;
     }
 
-    private function buildCurrencyErrorData($apiItem): ?array
+    private function buildLanguageErrorData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_currency_error'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_language_error'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_currency_error' => $apiItem['odoo_currency_error'],
+                    'odoo_language_error' => $apiItem['odoo_language_error'],
                 ],
             ];
         }

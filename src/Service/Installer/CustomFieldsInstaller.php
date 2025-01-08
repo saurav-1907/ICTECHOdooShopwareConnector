@@ -16,7 +16,7 @@ class CustomFieldsInstaller
     private const UPDATEAT = '_update_time';
     private const ODOO_SHOPWARE_PRODUCT = 'odoo_product';
     private const ODOO_SHOPWARE_CATEGORY = 'odoo_category';
-    private const ODOO_SHOPWARE_MANUFACTURER = 'shopware_product_brand';
+    private const ODOO_SHOPWARE_MANUFACTURER = 'odoo_manufacturer_id';
     private const ODOO_SHOPWARE_CUSTOMER = 'odoo_customer';
     private const ODOO_SHOPWARE_ORDER = 'odoo_order';
     private const ODOO_SHOPWARE_CUSTOMER_GROUP = 'odoo_customer_group';
@@ -26,7 +26,7 @@ class CustomFieldsInstaller
     private const CUSTOM_FIELDSET_NAME = [
         'odoo_product',
         'odoo_category',
-        'shopware_product_brand',
+        'odoo_manufacturer_id',
         'odoo_customer',
         'odoo_order',
         'odoo_customer_group',
@@ -491,7 +491,7 @@ class CustomFieldsInstaller
             ],
             'relations' => [
                 [
-                    'entityName' => 'shipping_method',
+                    'entityName' => 'currency',
                 ],
             ],
         ],
@@ -548,7 +548,7 @@ class CustomFieldsInstaller
             ],
             'relations' => [
                 [
-                    'entityName' => 'shipping_method',
+                    'entityName' => 'tax',
                 ],
             ],
         ],

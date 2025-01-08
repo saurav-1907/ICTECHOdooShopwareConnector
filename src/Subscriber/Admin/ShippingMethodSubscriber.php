@@ -124,8 +124,8 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_shippingMethod_id' => $apiItem['odoo_shopware_shippingMethodId'],
-                    'odoo_shippingMethod_update_time' => date("Y-m-d H:i"),
+                    'odoo_shipping_method_id' => $apiItem['odoo_shopware_shippingMethodId'],
+                    'odoo_shipping_method_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
@@ -138,7 +138,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_shippingMethod_error' => $apiItem['odoo_shippingMethod_error'],
+                    'odoo_shipping_method_error' => $apiItem['odoo_shippingMethod_error'],
                 ],
             ];
         }

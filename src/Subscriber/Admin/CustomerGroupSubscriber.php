@@ -50,12 +50,11 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
                     $customerGroupId = $writeResult->getPrimaryKey();
                     if ($customerGroupId) {
                         $customerGroup = $this->findCustomerGroupData($customerGroupId, $event);
-                        dd($customerGroup);
                         if ($customerGroup) {
                             $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $customerGroup);
                             if ($apiResponseData['result']) {
                                 $apiData = $apiResponseData['result'];
-                                $categoriesToUpsert = [];
+                                $customerGroupToUpsert = [];
                                 if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                     foreach ($apiData['data'] as $apiItem) {
                                         $customerGroupData = $this->buildCustomerGroupData($apiItem);
@@ -165,7 +164,7 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteCustomerGroupData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $customerGroupData = $this->buildCustomerGroupErrorData($apiItem);
                                     if ($customerGroupData) {

@@ -9,9 +9,6 @@ use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTaskHandler;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -24,8 +21,7 @@ class ShippingMethodSyncTaskHandler extends ScheduledTaskHandler
         EntityRepository                  $scheduledTaskRepository,
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $shippingMethodRepository,
-    )
-    {
+    ) {
         parent::__construct($scheduledTaskRepository);
         $this->client = new Client();
     }
@@ -35,33 +31,33 @@ class ShippingMethodSyncTaskHandler extends ScheduledTaskHandler
         $context = Context::createDefaultContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
         $odooUrl = $odooUrlData . self::MODULE;
-//        dd($odooUrl);
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
             $shippingMethodDataArray = $this->fetchShippingMethodData($context);
-            dd($shippingMethodDataArray);
-            if ($shippingMethod) {
-                $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $shippingMethod);
-                if ($apiResponseData['result']) {
-                    $apiData = $apiResponseData['result'];
-                    $shippingMethodToUpsert = [];
-                    if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
-                        foreach ($apiData['data'] as $apiItem) {
-                            $shippingMethodData = $this->buildShippingMethodData($apiItem);
-                            if ($shippingMethodData) {
-                                $shippingMethodToUpsert[] = $shippingMethodData;
+            if ($shippingMethodDataArray) {
+                foreach ($shippingMethodDataArray as $shippingMethodData) {
+                    $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $shippingMethodData);
+                    if ($apiResponseData['result']) {
+                        $apiData = $apiResponseData['result'];
+                        $shippingMethodToUpsert = [];
+                        if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            foreach ($apiData['data'] as $apiItem) {
+                                $shippingMethodData = $this->buildShippingMethodData($apiItem);
+                                if ($shippingMethodData) {
+                                    $shippingMethodToUpsert[] = $shippingMethodData;
+                                }
+                            }
+                        } else {
+                            foreach ($apiData['data'] ?? [] as $apiItem) {
+                                $shippingMethodData = $this->buildShippingMethodErrorData($apiItem);
+                                if ($shippingMethodData) {
+                                    $shippingMethodToUpsert[] = $shippingMethodData;
+                                }
                             }
                         }
-                    } else {
-                        foreach ($apiData['data'] ?? [] as $apiItem) {
-                            $shippingMethodData = $this->buildShippingMethodErrorData($apiItem);
-                            if ($shippingMethodData) {
-                                $shippingMethodToUpsert[] = $shippingMethodData;
-                            }
+                        if (!empty($shippingMethodToUpsert)) {
+                            $this->shippingMethodRepository->upsert($shippingMethodToUpsert, $context);
                         }
-                    }
-                    if (!empty($shippingMethodToUpsert)) {
-                        $this->shippingMethodRepository->upsert($shippingMethodToUpsert, $context);
                     }
                 }
             }
@@ -72,7 +68,6 @@ class ShippingMethodSyncTaskHandler extends ScheduledTaskHandler
     {
         $criteria = new Criteria();
         $criteria->addAssociation('translations');
-//        $criteria->addAssociation('languages');
         $criteria->addAssociation('prices');
         $criteria->addAssociation('media');
         $criteria->addAssociation('salesChannels');

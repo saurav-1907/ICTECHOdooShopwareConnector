@@ -31,7 +31,6 @@ class CheckAuthController extends AbstractController
         if ($odooUrl !== "null") {
             $apiUrl = $odooUrl . self::END_POINT;
             $apiResponseData = $this->checkApiAuthentication($apiUrl);
-            dd($apiResponseData);
             if ($apiResponseData !== true) {
                 $responseData = [
                     'type' => $apiResponseData->result->success,

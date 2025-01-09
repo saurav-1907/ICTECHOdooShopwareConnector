@@ -36,7 +36,6 @@ class LanguageSyncTaskHandler extends ScheduledTaskHandler
         if ($odooUrl !== "null" && $odooToken) {
             $languageDataArray = $this->fetchLanguageData($context);
             if ($languageDataArray) {
-                dd($languageDataArray);
                 foreach ($languageDataArray as $language) {
                     $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $language);
                     if ($apiResponseData['result']) {

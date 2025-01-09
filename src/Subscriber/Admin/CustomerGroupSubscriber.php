@@ -16,7 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CustomerGroupSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.customer.group';
+
     private const DELETEMODULE = '/delete/shopware.customer.group';
+
     private static $isProcessingCustomerGroupEvent = false;
 
     public function __construct(
@@ -51,6 +53,7 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
                     $customerGroupId = $writeResult->getPrimaryKey();
                     if ($customerGroupId) {
                         $customerGroup = $this->findCustomerGroupData($customerGroupId, $event);
+                        dd($customerGroup);
                         if ($customerGroup) {
                             $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $customerGroup);
                             if ($apiResponseData['result']) {
@@ -71,7 +74,7 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($customerGroupToUpsert)) {
+                                if (! empty($customerGroupToUpsert)) {
                                     $this->customerGroupRepository->upsert($customerGroupToUpsert, $context);
                                 }
                             }

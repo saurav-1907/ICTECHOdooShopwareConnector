@@ -16,7 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CategorySubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.category';
+
     private const DELETEMODULE = '/delete/shopware.category';
+
     private static $isProcessingCategoryEvent = false;
 
     public function __construct(

@@ -15,7 +15,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AllowDynamicProperties] #[AsMessageHandler(handles: CustomerGroupSyncTask::class)]
 class CustomerGroupSyncTaskHandler extends ScheduledTaskHandler
 {
-    private const MODULE = '/modify/shopware.customerGroup';
+    private const MODULE = '/modify/shopware.customer.group';
 
     public function __construct(
         EntityRepository                  $scheduledTaskRepository,

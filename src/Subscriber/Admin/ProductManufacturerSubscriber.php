@@ -16,7 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ProductManufacturerSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/product.brand';
+
     private const DELETEMODULE = '/delete/product.brand';
+
     private static $isProcessingProductManufacturerEvent = false;
 
     public function __construct(

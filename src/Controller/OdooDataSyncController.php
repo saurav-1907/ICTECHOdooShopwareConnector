@@ -48,7 +48,6 @@ class OdooDataSyncController extends AbstractController
     #[Route(path: '/api/sw/sync/categories', name: 'api.action.sw.sync.categories', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function syncCategoryInfo(Request $request): JsonResponse
     {
-        dd($request);
         return new JsonResponse([
             'status' => 'error',
             'code' => 400,
@@ -59,7 +58,6 @@ class OdooDataSyncController extends AbstractController
     #[Route(path: '/api/sw/sync/tax', name: 'api.action.sw.sync.tax', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function syncTaxInfo(Request $request): JsonResponse
     {
-        dd($request);
         return new JsonResponse([
             'status' => 'error',
             'code' => 400,
@@ -70,7 +68,6 @@ class OdooDataSyncController extends AbstractController
     #[Route(path: '/api/sw/sync/sales-channels', name: 'api.action.sw.sync.sales-channels', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function syncSalesChannelsInfo(Request $request): JsonResponse
     {
-        dd($request);
         return new JsonResponse([
             'status' => 'error',
             'code' => 400,
@@ -81,7 +78,6 @@ class OdooDataSyncController extends AbstractController
     #[Route(path: '/api/sw/sync/shipping', name: 'api.action.sw.sync.shipping', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function syncShippingInfo(Request $request): JsonResponse
     {
-        dd($request);
         return new JsonResponse([
             'status' => 'error',
             'code' => 400,
@@ -92,7 +88,6 @@ class OdooDataSyncController extends AbstractController
     #[Route(path: '/api/sw/sync/currencies', name: 'api.action.sw.sync.currencies', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function syncCurrenciesInfo(Request $request): JsonResponse
     {
-        dd($request);
         return new JsonResponse([
             'status' => 'error',
             'code' => 400,

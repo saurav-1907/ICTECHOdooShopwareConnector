@@ -17,7 +17,9 @@ class ProductSubscriber implements EventSubscriberInterface
 {
 
     private const MODULE = '/modify/shopware.product';
+
     private const DELETEMODULE = '/delete/shopware.product';
+
     private static $isProcessingProductEvent = false;
 
     public function __construct(

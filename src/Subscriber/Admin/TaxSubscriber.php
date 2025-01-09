@@ -16,7 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class TaxSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.tax';
+
     private const DELETEMODULE = '/delete/shopware.tax';
+
     private static $isProcessingTaxEvent = false;
 
     public function __construct(

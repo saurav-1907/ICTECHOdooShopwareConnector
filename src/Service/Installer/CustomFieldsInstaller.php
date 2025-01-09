@@ -23,6 +23,9 @@ class CustomFieldsInstaller
     private const ODOO_SHOPWARE_SHIPPING_METHOD = 'odoo_shipping_method';
     private const ODOO_SHOPWARE_CURRENCY = 'odoo_currency';
     private const ODOO_SHOPWARE_TAX = 'odoo_tax';
+    private const ODOO_SHOPWARE_LANGUAGE = 'odoo_language';
+    private const ODOO_SHOPWARE_SALESCHANNEL = 'odoo_sales_channel';
+    private const ODOO_SHOPWARE_DELIVERYTIME = 'odoo_delivery_time';
     private const CUSTOM_FIELDSET_NAME = [
         'odoo_product',
         'odoo_category',
@@ -33,6 +36,9 @@ class CustomFieldsInstaller
         'odoo_shipping_method',
         'odoo_currency',
         'odoo_tax',
+        'odoo_language',
+        'odoo_sales_channel',
+        'odoo_delivery_time',
     ];
     private const CUSTOM_FIELDSET = [
         [
@@ -552,11 +558,240 @@ class CustomFieldsInstaller
                 ],
             ],
         ],
+        [
+            'name' => self::ODOO_SHOPWARE_LANGUAGE,
+            'position' => 1,
+            'config' => [
+                'label' => [
+                    'de-DE' => 'Odoo Sprache',
+                    'en-GB' => 'Odoo Language'
+                ],
+                'translated' => true,
+            ],
+            'customFields' => [
+                [
+                    'name' => self::ODOO_SHOPWARE_LANGUAGE . self::ID,
+                    'type' => CustomFieldTypes::INT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Language Id',
+                            'de-DE' => 'Odoo Sprache Id',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Language Id'
+                        ],
+                        'customFieldType' => 'int',
+                        'customFieldPosition' => 1
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_LANGUAGE . self::ERROR,
+                    'type' => CustomFieldTypes::TEXT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Language Error',
+                            'de-DE' => 'Odoo Sprachfehler',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Language Error'
+                        ],
+                        'customFieldType' => 'text',
+                        'customFieldPosition' => 2
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_LANGUAGE . self::UPDATEAT,
+                    'type' => CustomFieldTypes::DATETIME,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Last Update Time',
+                            'de-DE' => 'Letzte Aktualisierungszeit',
+                            Defaults::LANGUAGE_SYSTEM => 'Last Update Time'
+                        ],
+                        'customFieldType' => 'date',
+                        'customFieldPosition' => 3
+                    ]
+                ],
+            ],
+            'relations' => [
+                [
+                    'entityName' => 'language',
+                ],
+            ],
+        ],
+        [
+            'name' => self::ODOO_SHOPWARE_SALESCHANNEL,
+            'position' => 1,
+            'config' => [
+                'label' => [
+                    'de-DE' => 'Odoo Vertriebskanal',
+                    'en-GB' => 'Odoo Sales Channel'
+                ],
+                'translated' => true,
+            ],
+            'customFields' => [
+                [
+                    'name' => self::ODOO_SHOPWARE_SALESCHANNEL . self::ID,
+                    'type' => CustomFieldTypes::INT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Sales Channel Id',
+                            'de-DE' => 'Odoo Vertriebskanal Id',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Sales Channel Id'
+                        ],
+                        'customFieldType' => 'int',
+                        'customFieldPosition' => 1
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_SALESCHANNEL . self::ERROR,
+                    'type' => CustomFieldTypes::TEXT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Sales Channel Error',
+                            'de-DE' => 'Odoo Vertriebskanal-Fehler',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Sales Channel Error'
+                        ],
+                        'customFieldType' => 'text',
+                        'customFieldPosition' => 2
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_SALESCHANNEL . self::UPDATEAT,
+                    'type' => CustomFieldTypes::DATETIME,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Last Update Time',
+                            'de-DE' => 'Letzte Aktualisierungszeit',
+                            Defaults::LANGUAGE_SYSTEM => 'Last Update Time'
+                        ],
+                        'customFieldType' => 'date',
+                        'customFieldPosition' => 3
+                    ]
+                ],
+            ],
+            'relations' => [
+                [
+                    'entityName' => 'sales_channel',
+                ],
+            ],
+        ],
+        [
+            'name' => self::ODOO_SHOPWARE_DELIVERYTIME,
+            'position' => 1,
+            'config' => [
+                'label' => [
+                    'de-DE' => 'Odoo Lieferzeiten',
+                    'en-GB' => 'Odoo Delivery Time'
+                ],
+                'translated' => true,
+            ],
+            'customFields' => [
+                [
+                    'name' => self::ODOO_SHOPWARE_DELIVERYTIME . self::ID,
+                    'type' => CustomFieldTypes::INT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Delivery Time Id',
+                            'de-DE' => 'Odoo Lieferzeiten Id',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Delivery Time Id'
+                        ],
+                        'customFieldType' => 'int',
+                        'customFieldPosition' => 1
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_DELIVERYTIME . self::ERROR,
+                    'type' => CustomFieldTypes::TEXT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Delivery Time Error',
+                            'de-DE' => 'Odoo Lieferzeiten-Fehler',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Delivery Time Error'
+                        ],
+                        'customFieldType' => 'text',
+                        'customFieldPosition' => 2
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_DELIVERYTIME . self::UPDATEAT,
+                    'type' => CustomFieldTypes::DATETIME,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Last Update Time',
+                            'de-DE' => 'Letzte Aktualisierungszeit',
+                            Defaults::LANGUAGE_SYSTEM => 'Last Update Time'
+                        ],
+                        'customFieldType' => 'date',
+                        'customFieldPosition' => 3
+                    ]
+                ],
+            ],
+            'relations' => [
+                [
+                    'entityName' => 'delivery_time',
+                ],
+            ],
+        ],
+        [
+            'name' => self::ODOO_SHOPWARE_LANGUAGE,
+            'position' => 1,
+            'config' => [
+                'label' => [
+                    'de-DE' => 'Odoo Sprache',
+                    'en-GB' => 'Odoo Language'
+                ],
+                'translated' => true,
+            ],
+            'customFields' => [
+                [
+                    'name' => self::ODOO_SHOPWARE_LANGUAGE . self::ID,
+                    'type' => CustomFieldTypes::INT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Language Id',
+                            'de-DE' => 'Odoo Sprache Id',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Language Id'
+                        ],
+                        'customFieldType' => 'int',
+                        'customFieldPosition' => 1
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_LANGUAGE . self::ERROR,
+                    'type' => CustomFieldTypes::TEXT,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Odoo Language Error',
+                            'de-DE' => 'Odoo Sprachfehler',
+                            Defaults::LANGUAGE_SYSTEM => 'Odoo Language Error'
+                        ],
+                        'customFieldType' => 'text',
+                        'customFieldPosition' => 2
+                    ]
+                ],
+                [
+                    'name' => self::ODOO_SHOPWARE_LANGUAGE . self::UPDATEAT,
+                    'type' => CustomFieldTypes::DATETIME,
+                    'config' => [
+                        'label' => [
+                            'en-GB' => 'Last Update Time',
+                            'de-DE' => 'Letzte Aktualisierungszeit',
+                            Defaults::LANGUAGE_SYSTEM => 'Last Update Time'
+                        ],
+                        'customFieldType' => 'date',
+                        'customFieldPosition' => 3
+                    ]
+                ],
+            ],
+            'relations' => [
+                [
+                    'entityName' => 'language',
+                ],
+            ],
+        ],
     ];
 
     public function __construct(
         private readonly EntityRepository $customFieldSetRepository,
-    ) {
+    )
+    {
     }
 
     public function install(Context $context): void

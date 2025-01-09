@@ -14,7 +14,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class LanguageSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.language';
+
     private const DELETEMODULE = '/delete/shopware.language';
+
     private static $isProcessingLanguage = false;
 
     public function __construct(

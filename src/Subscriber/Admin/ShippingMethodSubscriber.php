@@ -16,7 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ShippingMethodSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shipping.method';
+
     private const DELETEMODULE = '/delete/shipping.method';
+
     private static $isProcessingShippingMethodEvent = false;
 
     public function __construct(

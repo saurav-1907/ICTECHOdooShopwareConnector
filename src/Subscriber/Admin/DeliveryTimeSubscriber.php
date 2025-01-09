@@ -2,12 +2,13 @@
 
 namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 
-use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
-use Shopware\Core\Checkout\Order\OrderEvents;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityDeletedEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -16,12 +17,15 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class DeliveryTimeSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.delivery.time';
+
     private const DELETEMODULE = '/delete/shopware.delivery.time';
-    private static $isProcessingCategoryEvent = false;
+
+    private static $isProcessingDeliveryTimeEvent = false;
 
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
-        private readonly EntityRepository $categoryRepository,
+        private readonly EntityRepository $deliveryTimeRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         $this->client = new Client();
@@ -30,75 +34,69 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'delivery.loaded' => 'onOrderDeliveryWritten',
-            OrderEvents::ORDER_DELIVERY_DELETED_EVENT => 'onOrderDeliveryDelete',
+            'delivery_time.written' => 'onDeliveryTimeWritten',
+            'delivery_time.deleted' => 'onDeliveryTimeDelete',
         ];
     }
 
-    public function onOrderDeliveryWritten(EntityWrittenEvent $event): void
+    public function onDeliveryTimeWritten(EntityWrittenEvent $event): void
     {
-        dd($event);
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
         $odooUrl = $odooUrlData . self::MODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            if (self::$isProcessingCategoryEvent) {
+            if (self::$isProcessingDeliveryTimeEvent) {
                 return;
             }
-            self::$isProcessingCategoryEvent = true;
+            self::$isProcessingDeliveryTimeEvent = true;
             try {
                 foreach ($event->getWriteResults() as $writeResult) {
-                    $categoryId = $writeResult->getPrimaryKey();
-                    if ($categoryId) {
-                        $category = $this->findCategoryData($categoryId, $event);
-                        dd($category);
-                        if ($category) {
-                            $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $category);
+                    $deliveryTimeId = $writeResult->getPrimaryKey();
+                    if ($deliveryTimeId) {
+                        $deliveryTime = $this->findDeliveryTimeData($deliveryTimeId, $event);
+                        if ($deliveryTime) {
+                            $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deliveryTime);
                             if ($apiResponseData['result']) {
                                 $apiData = $apiResponseData['result'];
-                                $categoriesToUpsert = [];
+                                $deliveryTimeToUpsert = [];
                                 if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                     foreach ($apiData['data'] as $apiItem) {
-                                        $categoryData = $this->buildCategoryData($apiItem);
-                                        if ($categoryData) {
-                                            $categoriesToUpsert[] = $categoryData;
+                                        $deliveryTimeData = $this->buildDeliveryTimeData($apiItem);
+                                        if ($deliveryTimeData) {
+                                            $deliveryTimeToUpsert[] = $deliveryTimeData;
                                         }
                                     }
                                 } else {
                                     foreach ($apiData['data'] ?? [] as $apiItem) {
-                                        $categoryData = $this->buildCategoryErrorData($apiItem);
-                                        if ($categoryData) {
-                                            $categoriesToUpsert[] = $categoryData;
+                                        $deliveryTimeData = $this->buildDeliveryTimeErrorData($apiItem);
+                                        if ($deliveryTimeData) {
+                                            $deliveryTimeToUpsert[] = $deliveryTimeData;
                                         }
                                     }
                                 }
-                                if (!empty($categoriesToUpsert)) {
-                                    $this->categoryRepository->upsert($categoriesToUpsert, $context);
+                                if (!empty($deliveryTimeToUpsert)) {
+                                    $this->deliveryTimeRepository->upsert($deliveryTimeToUpsert, $context);
                                 }
                             }
                         }
                     }
                 }
             } finally {
-                self::$isProcessingCategoryEvent = false;
+                self::$isProcessingDeliveryTimeEvent = false;
             }
         }
     }
 
-    public function findCategoryData($categoryId, $event): ?Entity
+    public function findDeliveryTimeData($deliveryTimeId, $event): ?Entity
     {
         $criteria = new Criteria();
         $criteria->addAssociation('translations');
-        $criteria->addAssociation('languages');
-        $criteria->addAssociation('navigationSalesChannels');
-        $criteria->addAssociation('footerSalesChannels');
-        $criteria->addAssociation('serviceSalesChannels');
-        $criteria->addFilter(new EqualsFilter('id', $categoryId));
-        return $this->categoryRepository->search($criteria, $event->getContext())->first();
+        $criteria->addFilter(new EqualsFilter('id', $deliveryTimeId));
+        return $this->deliveryTimeRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $category)
+    public function checkApiAuthentication($apiUrl, $odooToken, $deliveryTime)
     {
         try {
             $apiResponseData = $this->client->post(
@@ -108,11 +106,16 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
                         'Content-Type' => 'application/json',
                         'Access-Token' => $odooToken,
                     ],
-                    'json' => $category,
+                    'json' => $deliveryTime,
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),
@@ -120,60 +123,60 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
         }
     }
 
-    private function buildCategoryData($apiItem): ?array
+    private function buildDeliveryTimeData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_shopware_categoryId'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_deliveryTimeId'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_category_id' => $apiItem['odoo_shopware_categoryId'],
-                    'odoo_category_update_time' => date("Y-m-d H:i"),
+                    'odoo_deliveryTime_id' => $apiItem['odoo_shopware_deliveryTimeId'],
+                    'odoo_deliveryTime_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
         return null;
     }
 
-    private function buildCategoryErrorData($apiItem): ?array
+    private function buildDeliveryTimeErrorData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_category_error'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_deliveryTime_error'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_category_error' => $apiItem['odoo_category_error'],
+                    'odoo_deliveryTime_error' => $apiItem['odoo_deliveryTime_error'],
                 ],
             ];
         }
         return null;
     }
 
-    public function onOrderDeliveryDelete(EntityWrittenEvent $event): void
+    public function onDeliveryTimeDelete(EntityDeletedEvent $event): void
     {
         $context = $event->getContext();
         $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
         $odooUrl = $odooUrlData . self::DELETEMODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            if (self::$isProcessingCategoryEvent) {
+            if (self::$isProcessingDeliveryTimeEvent) {
                 return;
             }
-            self::$isProcessingCategoryEvent = true;
+            self::$isProcessingDeliveryTimeEvent = true;
             try {
                 foreach ($event->getWriteResults() as $writeResult) {
-                    $categoryId = $writeResult->getPrimaryKey();
-                    if ($categoryId) {
-                        $deleteCategoryData = [
-                            'shopwareId' => $categoryId,
+                    $deliveryTimeId = $writeResult->getPrimaryKey();
+                    if ($deliveryTimeId) {
+                        $deleteDeliveryTimeData = [
+                            'shopwareId' => $deliveryTimeId,
                             'operation' => $writeResult->getOperation(),
                         ];
-                        $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteCategoryData);
+                        $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteDeliveryTimeData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
                             if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
-                                    $categoryData = $this->buildCategoryErrorData($apiItem);
-                                    if ($categoryData) {
-                                        $this->categoryRepository->upsert([$categoryData], $context);
+                                    $deliveryTimeData = $this->buildDeliveryTimeErrorData($apiItem);
+                                    if ($deliveryTimeData) {
+                                        $this->deliveryTimeRepository->upsert([$deliveryTimeData], $context);
                                     }
                                 }
                             }
@@ -181,7 +184,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
                     }
                 }
             } finally {
-                self::$isProcessingCategoryEvent = false;
+                self::$isProcessingDeliveryTimeEvent = false;
             }
         }
     }

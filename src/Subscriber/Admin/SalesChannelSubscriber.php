@@ -16,7 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class SalesChannelSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.sales.channel';
+
     private const DELETEMODULE = '/delete/shopware.sales.channel';
+
     private static $isProcessingSalesChannelEvent = false;
 
     public function __construct(

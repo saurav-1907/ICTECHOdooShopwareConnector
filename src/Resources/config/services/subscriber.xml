@@ -28,6 +28,7 @@
         <service id="ICTECHOdooShopwareConnector\Subscriber\Admin\DeliveryTimeSubscriber" public="true">
             <argument type="service" id="ICTECHOdooShopwareConnector\Components\Config\PluginConfig"/>
             <argument type="service" id="delivery_time.repository"/>
+            <argument type="service" id="Psr\Log\LoggerInterface"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

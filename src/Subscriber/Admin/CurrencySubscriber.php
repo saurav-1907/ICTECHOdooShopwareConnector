@@ -2,9 +2,10 @@
 
 namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 
-use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
@@ -15,15 +16,16 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class CurrencySubscriber implements EventSubscriberInterface
 {
-    private const MODULE = '/modify/res.currency';
+    private const MODULE = '/modify/shopware.currency';
 
-    private const DELETEMODULE = '/delete/res.currency';
+    private const DELETEMODULE = '/delete/shopware.currency';
 
     private static $isProcessingCurrencyEvent = false;
 
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $currencyRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         $this->client = new Client();
@@ -96,7 +98,7 @@ class CurrencySubscriber implements EventSubscriberInterface
         return $this->currencyRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $currency)
+    public function checkApiAuthentication($apiUrl, $odooToken, $currency): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -110,7 +112,12 @@ class CurrencySubscriber implements EventSubscriberInterface
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),

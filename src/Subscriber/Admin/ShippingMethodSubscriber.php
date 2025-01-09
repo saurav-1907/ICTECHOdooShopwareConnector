@@ -4,7 +4,9 @@ namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Shipping\ShippingEvents;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -24,6 +26,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $shippingMethodRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         $this->client = new Client();
@@ -99,7 +102,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
         return $this->shippingMethodRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $shippingMethod)
+    public function checkApiAuthentication($apiUrl, $odooToken, $shippingMethod): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -113,7 +116,12 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),

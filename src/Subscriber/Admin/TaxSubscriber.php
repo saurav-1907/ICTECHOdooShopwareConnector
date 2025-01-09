@@ -98,7 +98,7 @@ class TaxSubscriber implements EventSubscriberInterface
         return $this->taxRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $taxDataArray)
+    public function checkApiAuthentication($apiUrl, $odooToken, $taxDataArray): ?array
     {
         try {
             $apiResponseData = $this->client->post(

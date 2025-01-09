@@ -4,7 +4,9 @@ namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEvents;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -24,6 +26,7 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $customerGroupRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         $this->client = new Client();
@@ -97,7 +100,7 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
         return $this->customerGroupRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $customerGroup)
+    public function checkApiAuthentication($apiUrl, $odooToken, $customerGroup): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -111,7 +114,12 @@ class CustomerGroupSubscriber implements EventSubscriberInterface
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),

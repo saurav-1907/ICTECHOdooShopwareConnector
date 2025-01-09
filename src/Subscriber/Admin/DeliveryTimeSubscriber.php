@@ -96,7 +96,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
         return $this->deliveryTimeRepository->search($criteria, $event->getContext())->first();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $deliveryTime)
+    public function checkApiAuthentication($apiUrl, $odooToken, $deliveryTime): ?array
     {
         try {
             $apiResponseData = $this->client->post(

@@ -5,7 +5,9 @@ namespace ICTECHOdooShopwareConnector\Service\ScheduledTask;
 use AllowDynamicProperties;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -23,6 +25,7 @@ class ProductSyncTaskHandler extends ScheduledTaskHandler
         EntityRepository                  $scheduledTaskRepository,
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $productRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         parent::__construct($scheduledTaskRepository);
@@ -67,7 +70,7 @@ class ProductSyncTaskHandler extends ScheduledTaskHandler
         }
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $product)
+    public function checkApiAuthentication($apiUrl, $odooToken, $product): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -81,7 +84,12 @@ class ProductSyncTaskHandler extends ScheduledTaskHandler
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),

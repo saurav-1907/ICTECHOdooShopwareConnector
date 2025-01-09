@@ -5,7 +5,9 @@ namespace ICTECHOdooShopwareConnector\Service\ScheduledTask;
 use AllowDynamicProperties;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -15,12 +17,13 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AllowDynamicProperties] #[AsMessageHandler(handles: SalesChannelSyncTask::class)]
 class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
 {
-    private const MODULE = '/modify/shopware.category';
+    private const MODULE = '/modify/shopware.saleschannel';
 
     public function __construct(
         EntityRepository                  $scheduledTaskRepository,
         private readonly PluginConfig     $pluginConfig,
-        private readonly EntityRepository $categoryRepository,
+        private readonly EntityRepository $salesChannelRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         parent::__construct($scheduledTaskRepository);
@@ -34,31 +37,30 @@ class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
         $odooUrl = $odooUrlData . self::MODULE;
         $odooToken = $this->pluginConfig->getOdooAccessToken();
         if ($odooUrl !== "null" && $odooToken) {
-            $categoryDataArray = $this->fetchCategoryData($context);
-//            dd($categoryDataArray);
-            if ($categoryDataArray) {
-                foreach ($categoryDataArray as $category) {
-                    $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $category);
+            $salesChannelDataArray = $this->fetchSalesChannelData($context);
+            if ($salesChannelDataArray) {
+                foreach ($salesChannelDataArray as $salesChannel) {
+                    $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $salesChannel);
                     if ($apiResponseData['result']) {
                         $apiData = $apiResponseData['result'];
-                        $categoriesToUpsert = [];
+                        $salesChannelsToUpsert = [];
                         if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                             foreach ($apiData['data'] as $apiItem) {
-                                $categoryData = $this->buildCategoryData($apiItem);
-                                if ($categoryData) {
-                                    $categoriesToUpsert[] = $categoryData;
+                                $salesChannelData = $this->buildSalesChannelData($apiItem);
+                                if ($salesChannelData) {
+                                    $salesChannelsToUpsert[] = $salesChannelData;
                                 }
                             }
                         } else {
                             foreach ($apiData['data'] ?? [] as $apiItem) {
-                                $categoryData = $this->buildCategoryErrorData($apiItem);
-                                if ($categoryData) {
-                                    $categoriesToUpsert[] = $categoryData;
+                                $salesChannelData = $this->buildSalesChannelErrorData($apiItem);
+                                if ($salesChannelData) {
+                                    $salesChannelsToUpsert[] = $salesChannelData;
                                 }
                             }
                         }
-                        if (!empty($categoriesToUpsert)) {
-                            $this->categoryRepository->upsert($categoriesToUpsert, $context);
+                        if (!empty($salesChannelsToUpsert)) {
+                            $this->salesChannelRepository->upsert($salesChannelsToUpsert, $context);
                         }
                     }
                 }
@@ -66,7 +68,7 @@ class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
         }
     }
 
-    public function fetchCategoryData($context)
+    public function fetchSalesChannelData($context)
     {
         $criteria = new Criteria();
         $criteria->addAssociation('translations');
@@ -74,15 +76,15 @@ class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
         $criteria->addAssociation('navigationSalesChannels');
         $criteria->addAssociation('footerSalesChannels');
         $criteria->addAssociation('serviceSalesChannels');
-//        $criteria->addFilter(new EqualsFilter('customFields.odoo_category_id', null));
+//        $criteria->addFilter(new EqualsFilter('customFields.odoo_sales_channel_id', null));
 //        $criteria->addFilter(new NotFilter(
 //            MultiFilter::CONNECTION_AND,
-//            [new EqualsFilter('customFields.odoo_category_error', null)]
+//            [new EqualsFilter('customFields.odoo_sales_channel_error', null)]
 //        ));
-        return $this->categoryRepository->search($criteria, $context)->getElements();
+        return $this->salesChannelRepository->search($criteria, $context)->getElements();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $category)
+    public function checkApiAuthentication($apiUrl, $odooToken, $salesChannel): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -92,11 +94,16 @@ class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
                         'Content-Type' => 'application/json',
                         'Access-Token' => $odooToken,
                     ],
-                    'json' => $category,
+                    'json' => $salesChannel,
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),
@@ -104,27 +111,27 @@ class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
         }
     }
 
-    private function buildCategoryData($apiItem): ?array
+    private function buildSalesChannelData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_shopware_categoryId'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_saleschannelId'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_category_id' => $apiItem['odoo_shopware_categoryId'],
-                    'odoo_category_update_time' => date("Y-m-d H:i"),
+                    'odoo_sales_channel_id' => $apiItem['odoo_shopware_saleschannelId'],
+                    'odoo_sales_channel_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
         return null;
     }
 
-    private function buildCategoryErrorData($apiItem): ?array
+    private function buildSalesChannelErrorData($apiItem): ?array
     {
-        if (isset($apiItem['id'], $apiItem['odoo_category_error'])) {
+        if (isset($apiItem['id'], $apiItem['odoo_sales_channel_error'])) {
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_category_error' => $apiItem['odoo_category_error'],
+                    'odoo_sales_channel_error' => $apiItem['odoo_sales_channel_error'],
                 ],
             ];
         }

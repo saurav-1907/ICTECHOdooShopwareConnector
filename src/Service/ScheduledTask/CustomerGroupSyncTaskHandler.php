@@ -5,12 +5,14 @@ namespace ICTECHOdooShopwareConnector\Service\ScheduledTask;
 use AllowDynamicProperties;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTaskHandler;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Psr\Log\LoggerInterface;
 
 #[AllowDynamicProperties] #[AsMessageHandler(handles: CustomerGroupSyncTask::class)]
 class CustomerGroupSyncTaskHandler extends ScheduledTaskHandler
@@ -21,6 +23,7 @@ class CustomerGroupSyncTaskHandler extends ScheduledTaskHandler
         EntityRepository                  $scheduledTaskRepository,
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $customerGroupRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         parent::__construct($scheduledTaskRepository);
@@ -75,7 +78,7 @@ class CustomerGroupSyncTaskHandler extends ScheduledTaskHandler
         return $this->customerGroupRepository->search($criteria, $context)->getElements();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $customerGroup)
+    public function checkApiAuthentication($apiUrl, $odooToken, $customerGroup): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -89,7 +92,12 @@ class CustomerGroupSyncTaskHandler extends ScheduledTaskHandler
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
             return [
                 'result' => false,
                 'error' => $e->getMessage(),

@@ -5,7 +5,9 @@ namespace ICTECHOdooShopwareConnector\Service\ScheduledTask;
 use AllowDynamicProperties;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -21,6 +23,7 @@ class LanguageSyncTaskHandler extends ScheduledTaskHandler
         EntityRepository                  $scheduledTaskRepository,
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $languageRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         parent::__construct($scheduledTaskRepository);
@@ -38,6 +41,7 @@ class LanguageSyncTaskHandler extends ScheduledTaskHandler
             if ($languageDataArray) {
                 foreach ($languageDataArray as $language) {
                     $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $language);
+                    dd($apiResponseData);
                     if ($apiResponseData['result']) {
                         $apiData = $apiResponseData['result'];
                         $categoriesToUpsert = [];
@@ -78,7 +82,7 @@ class LanguageSyncTaskHandler extends ScheduledTaskHandler
         return $this->languageRepository->search($criteria, $context)->getElements();
     }
 
-    public function checkApiAuthentication($apiUrl, $odooToken, $language)
+    public function checkApiAuthentication($apiUrl, $odooToken, $language): ?array
     {
         try {
             $apiResponseData = $this->client->post(
@@ -92,7 +96,13 @@ class LanguageSyncTaskHandler extends ScheduledTaskHandler
                 ]
             );
             return json_decode($apiResponseData->getBody()->getContents(), true);
-        } catch (Exception $e) {
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
+
             return [
                 'result' => false,
                 'error' => $e->getMessage(),

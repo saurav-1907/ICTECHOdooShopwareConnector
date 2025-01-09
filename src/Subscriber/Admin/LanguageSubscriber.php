@@ -3,7 +3,9 @@
 namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -22,6 +24,7 @@ class LanguageSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly PluginConfig     $pluginConfig,
         private readonly EntityRepository $languageRepository,
+        private readonly LoggerInterface  $logger,
     )
     {
         $this->client = new Client();
@@ -86,33 +89,6 @@ class LanguageSubscriber implements EventSubscriberInterface
         }
     }
 
-    private function buildLanguageData($apiItem): ?array
-    {
-        if (isset($apiItem['id'], $apiItem['odoo_shopware_languageId'])) {
-            return [
-                "id" => $apiItem['id'],
-                'customFields' => [
-                    'odoo_language_id' => $apiItem['odoo_shopware_languageId'],
-                    'odoo_language_update_time' => date("Y-m-d H:i"),
-                ],
-            ];
-        }
-        return null;
-    }
-
-    private function buildLanguageErrorData($apiItem): ?array
-    {
-        if (isset($apiItem['id'], $apiItem['odoo_language_error'])) {
-            return [
-                "id" => $apiItem['id'],
-                'customFields' => [
-                    'odoo_language_error' => $apiItem['odoo_language_error'],
-                ],
-            ];
-        }
-        return null;
-    }
-
     public function findLanguageData($languageId, $updateDataLanguageId, $event): ?array
     {
         $criteria = new Criteria();
@@ -140,6 +116,59 @@ class LanguageSubscriber implements EventSubscriberInterface
         return null;
     }
 
+    public function checkApiAuthentication($odooUrl, $odooToken, $language): ?array
+    {
+        try {
+            $apiResponse = $this->client->post(
+                $odooUrl,
+                [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Access-Token' => $odooToken
+                    ],
+                    'json' => $language,
+                ]
+            );
+            return json_decode($apiResponse->getBody()->getContents());
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $odooUrl,
+                'odooToken' => $odooToken,
+            ]);
+            return [
+                'result' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    private function buildLanguageData($apiItem): ?array
+    {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_languageId'])) {
+            return [
+                "id" => $apiItem['id'],
+                'customFields' => [
+                    'odoo_language_id' => $apiItem['odoo_shopware_languageId'],
+                    'odoo_language_update_time' => date("Y-m-d H:i"),
+                ],
+            ];
+        }
+        return null;
+    }
+
+    private function buildLanguageErrorData($apiItem): ?array
+    {
+        if (isset($apiItem['id'], $apiItem['odoo_language_error'])) {
+            return [
+                "id" => $apiItem['id'],
+                'customFields' => [
+                    'odoo_language_error' => $apiItem['odoo_language_error'],
+                ],
+            ];
+        }
+        return null;
+    }
 
     public function onLanguageDelete(EntityWrittenEvent $event): void
     {
@@ -178,20 +207,5 @@ class LanguageSubscriber implements EventSubscriberInterface
                 self::$isProcessingLanguage = false;
             }
         }
-    }
-
-    public function checkApiAuthentication($odooUrl, $odooToken, $language)
-    {
-        $apiResponse = $this->client->post(
-            $odooUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Access-Token' => $odooToken
-                ],
-                'json' => $language,
-            ]
-        );
-        return json_decode($apiResponse->getBody()->getContents());
     }
 }

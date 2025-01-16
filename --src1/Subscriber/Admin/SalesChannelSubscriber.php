@@ -1,0 +1,197 @@
+<?php
+
+namespace ICTECHOdooShopwareConnector\Subscriber\Admin;
+
+use Exception;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use ICTECHOdooShopwareConnector\Components\Config\PluginConfig;
+use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Entity;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\System\SalesChannel\SalesChannelEvents;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class SalesChannelSubscriber implements EventSubscriberInterface
+{
+    private const MODULE = '/modify/shopware.sales.channel';
+
+    private const DELETEMODULE = '/delete/shopware.sales.channel';
+
+    private static $isProcessingSalesChannelEvent = false;
+
+    public function __construct(
+        private readonly PluginConfig     $pluginConfig,
+        private readonly EntityRepository $salesChannelRepository,
+        private readonly LoggerInterface  $logger,
+    )
+    {
+        $this->client = new Client();
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            SalesChannelEvents::SALES_CHANNEL_WRITTEN => 'onSalesChannelWritten',
+            SalesChannelEvents::SALES_CHANNEL_DELETED => 'onSalesChannelDelete',
+        ];
+    }
+
+    public function onSalesChannelWritten(EntityWrittenEvent $event): void
+    {
+        $context = $event->getContext();
+        $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
+        $odooUrl = $odooUrlData . self::MODULE;
+        $odooToken = $this->pluginConfig->getOdooAccessToken();
+        if ($odooUrl !== "null" && $odooToken) {
+            if (self::$isProcessingSalesChannelEvent) {
+                return;
+            }
+            self::$isProcessingSalesChannelEvent = true;
+            try {
+                foreach ($event->getWriteResults() as $writeResult) {
+                    $salesChannelId = $writeResult->getPrimaryKey();
+                    if ($salesChannelId) {
+                        $salesChannel = $this->findSalesChannelData($salesChannelId, $event);
+                        if ($salesChannel) {
+                            $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $salesChannel);
+                            if ($apiResponseData['result']) {
+                                $apiData = $apiResponseData['result'];
+                                $salesChannelToUpsert = [];
+                                if ($apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                                    foreach ($apiData['data'] as $apiItem) {
+                                        $salesChannelData = $this->buildSalesChannelData($apiItem);
+                                        if ($salesChannelData) {
+                                            $salesChannelToUpsert[] = $salesChannelData;
+                                        }
+                                    }
+                                } else {
+                                    foreach ($apiData['data'] ?? [] as $apiItem) {
+                                        $salesChannelData = $this->buildSalesChannelErrorData($apiItem);
+                                        if ($salesChannelData) {
+                                            $salesChannelToUpsert[] = $salesChannelData;
+                                        }
+                                    }
+                                }
+                                if (!empty($salesChannelToUpsert)) {
+                                    $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                self::$isProcessingSalesChannelEvent = false;
+            }
+        }
+    }
+
+    public function findSalesChannelData($salesChannelId, $event): ?Entity
+    {
+        $criteria = new Criteria();
+        $criteria->addAssociation('translations');
+        $criteria->addAssociation('languages');
+        $criteria->addAssociation('navigationSalesChannels');
+        $criteria->addAssociation('footerSalesChannels');
+        $criteria->addAssociation('serviceSalesChannels');
+        $criteria->addFilter(new EqualsFilter('id', $salesChannelId));
+        return $this->salesChannelRepository->search($criteria, $event->getContext())->first();
+    }
+
+    public function checkApiAuthentication($apiUrl, $odooToken, $salesChannel): ?array
+    {
+        try {
+            $apiResponseData = $this->client->post(
+                $apiUrl,
+                [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Access-Token' => $odooToken,
+                    ],
+                    'json' => $salesChannel,
+                ]
+            );
+            return json_decode($apiResponseData->getBody()->getContents(), true);
+        } catch (RequestException $e) {
+            $this->logger->error('API request failed', [
+                'exception' => $e,
+                'apiUrl' => $apiUrl,
+                'odooToken' => $odooToken,
+            ]);
+
+            return [
+                'result' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    private function buildSalesChannelData($apiItem): ?array
+    {
+        if (isset($apiItem['id'], $apiItem['odoo_shopware_salesChannelId'])) {
+            return [
+                "id" => $apiItem['id'],
+                'customFields' => [
+                    'odoo_salesChannel_id' => $apiItem['odoo_shopware_salesChannelId'],
+                    'odoo_salesChannel_update_time' => date("Y-m-d H:i"),
+                ],
+            ];
+        }
+        return null;
+    }
+
+    private function buildSalesChannelErrorData($apiItem): ?array
+    {
+        if (isset($apiItem['id'], $apiItem['odoo_salesChannel_error'])) {
+            return [
+                "id" => $apiItem['id'],
+                'customFields' => [
+                    'odoo_salesChannel_error' => $apiItem['odoo_salesChannel_error'],
+                ],
+            ];
+        }
+        return null;
+    }
+
+    public function onSalesChannelDelete(EntityWrittenEvent $event): void
+    {
+        $context = $event->getContext();
+        $odooUrlData = $this->pluginConfig->fetchPluginConfigUrlData($context);
+        $odooUrl = $odooUrlData . self::DELETEMODULE;
+        $odooToken = $this->pluginConfig->getOdooAccessToken();
+        if ($odooUrl !== "null" && $odooToken) {
+            if (self::$isProcessingSalesChannelEvent) {
+                return;
+            }
+            self::$isProcessingSalesChannelEvent = true;
+            try {
+                foreach ($event->getWriteResults() as $writeResult) {
+                    $salesChannelId = $writeResult->getPrimaryKey();
+                    if ($salesChannelId) {
+                        $deleteSalesChannelData = [
+                            'shopwareId' => $salesChannelId,
+                            'operation' => $writeResult->getOperation(),
+                        ];
+                        $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteSalesChannelData);
+                        if ($apiResponseData['result']) {
+                            $apiData = $apiResponseData['result'];
+                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                                foreach ($apiData['data'] as $apiItem) {
+                                    $salesChannelData = $this->buildSalesChannelErrorData($apiItem);
+                                    if ($salesChannelData) {
+                                        $this->salesChannelRepository->upsert([$salesChannelData], $context);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                self::$isProcessingSalesChannelEvent = false;
+            }
+        }
+    }
+}

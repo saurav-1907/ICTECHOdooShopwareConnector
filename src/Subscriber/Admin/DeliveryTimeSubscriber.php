@@ -137,8 +137,8 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_deliveryTime_id' => $apiItem['odoo_delivery_time_id'],
-                    'odoo_deliveryTime_update_time' => date("Y-m-d H:i"),
+                    'odoo_delivery_time_id' => $apiItem['odoo_delivery_time_id'],
+                    'odoo_delivery_time_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
@@ -151,7 +151,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_deliveryTime_error' => $apiItem['odoo_shopware_error'],
+                    'odoo_delivery_time_error' => $apiItem['odoo_shopware_error'],
                 ],
             ];
         }

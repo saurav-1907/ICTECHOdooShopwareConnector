@@ -78,7 +78,8 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                                 }
                                 if (!empty($salesChannelToUpsert)) {
                                     try {
-                                        $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
+                                     $sk =    $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
+                                     dd($sk, $salesChannelToUpsert);
                                     } catch (\Exception $e) {
                                         $this->logger->error('Error in sales-channel sync task', [
                                             'exception' => $e,
@@ -143,8 +144,8 @@ class SalesChannelSubscriber implements EventSubscriberInterface
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_salesChannel_id' => $apiItem['odoo_sales_channel_id'],
-                    'odoo_salesChannel_update_time' => date("Y-m-d H:i"),
+                    'odoo_sales_channel_id' => $apiItem['odoo_sales_channel_id'],
+                    'odoo_sales_channel_update_time' => date("Y-m-d H:i"),
                 ],
             ];
         }
@@ -157,7 +158,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
             return [
                 "id" => $apiItem['id'],
                 'customFields' => [
-                    'odoo_salesChannel_error' => $apiItem['odoo_shopware_error'],
+                    'odoo_sales_channel_error' => $apiItem['odoo_shopware_error'],
                 ],
             ];
         }
@@ -184,6 +185,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                             'operation' => $writeResult->getOperation(),
                         ];
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteSalesChannelData);
+                        dd($apiResponseData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
                             if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {

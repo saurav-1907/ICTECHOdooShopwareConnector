@@ -78,8 +78,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                                 }
                                 if (!empty($salesChannelToUpsert)) {
                                     try {
-                                     $sk =    $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
-                                     dd($sk, $salesChannelToUpsert);
+                                     $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
                                     } catch (\Exception $e) {
                                         $this->logger->error('Error in sales-channel sync task', [
                                             'exception' => $e,
@@ -185,7 +184,6 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                             'operation' => $writeResult->getOperation(),
                         ];
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteSalesChannelData);
-                        dd($apiResponseData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
                             if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {

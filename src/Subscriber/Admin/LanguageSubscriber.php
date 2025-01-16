@@ -77,8 +77,7 @@ class LanguageSubscriber implements EventSubscriberInterface
                                 }
                                 if (!empty($languagesToUpsert)) {
                                     try {
-                                      $sk =   $this->languageRepository->upsert($languagesToUpsert, $context);
-                                      dd($sk);
+                                      $this->languageRepository->upsert($languagesToUpsert, $context);
                                     } catch (\Exception $e) {
                                         $this->logger->error('Error in language sync real-time', [
                                             'exception' => $e,

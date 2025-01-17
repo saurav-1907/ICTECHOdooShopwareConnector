@@ -19,7 +19,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
 {
     private const MODULE = '/modify/shopware.shipping.method';
 
-    private const DELETEMODULE = '/delete/shipping.method';
+    private const DELETEMODULE = '/delete/shopware.shipping.method';
 
     private static $isProcessingShippingMethodEvent = false;
 

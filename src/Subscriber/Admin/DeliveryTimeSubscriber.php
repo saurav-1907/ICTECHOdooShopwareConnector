@@ -75,7 +75,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($deliveryTimeToUpsert)) {
+                                if (! empty($deliveryTimeToUpsert)) {
                                     try {
                                         $this->deliveryTimeRepository->upsert($deliveryTimeToUpsert, $context);
                                     } catch (\Exception $e) {
@@ -180,7 +180,7 @@ class DeliveryTimeSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteDeliveryTimeData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $deliveryTimeData = $this->buildDeliveryTimeErrorData($apiItem);
                                     if ($deliveryTimeData) {

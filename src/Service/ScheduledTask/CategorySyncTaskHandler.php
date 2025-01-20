@@ -60,7 +60,7 @@ class CategorySyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($categoriesToUpsert)) {
+                        if (! empty($categoriesToUpsert)) {
                             try {
                                 $this->categoryRepository->upsert($categoriesToUpsert, $context);
                             } catch (\Exception $e) {

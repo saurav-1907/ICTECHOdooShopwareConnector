@@ -58,7 +58,7 @@ class DeliveryTimeSyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($deliveryTimeToUpsert)) {
+                        if (! empty($deliveryTimeToUpsert)) {
                             try {
                                 $this->deliveryTimeRepository->upsert($deliveryTimeToUpsert, $context);
                             } catch (\Exception $e) {

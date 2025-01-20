@@ -51,7 +51,7 @@ class ProductCreate
             if (array_key_exists('tax_data', $productDataArray)) {
                 $oddTaxData = $productDataArray['tax_data'];
                 $taxData = $this->getTaxId($oddTaxData, $context);
-                if (!$taxData) {
+                if (! $taxData) {
                     $taxDataCreate = $this->taxCreate->taxDataGenerate($oddTaxData, $context);
                     if ($taxDataCreate['type'] === 'Success' && $taxDataCreate['responseCode'] === 200) {
                         $taxId = $taxDataCreate['taxData'][0]['shopwareTaxId'];
@@ -226,7 +226,7 @@ class ProductCreate
                     ];
                 }
             }
-            if (!$checkExistsProductData) {
+            if (! $checkExistsProductData) {
                 $data = [
                     'id' => Uuid::randomHex(),
                     'productNumber' => $productNumber,
@@ -385,15 +385,9 @@ class ProductCreate
     {
         // Extract the optionIds into a flat array
         $unique = [];
-//        array_unique($properties);
         foreach ($properties as $item) {
-        //dd($properties,$item);
-        	
-        //    if (!array_key_exists($item['id'], $unique)) {
                 $unique[$item['id']] = $item;
-          //  }
         }
-//        dd($unique);
         return array_values($unique);
     }
 
@@ -412,7 +406,7 @@ class ProductCreate
         if (array_key_exists('tax_data', $childData)) {
             $oddTaxData = $childData['tax_data'];
             $taxData = $this->getTaxId($oddTaxData, $context);
-            if (!$taxData) {
+            if (! $taxData) {
                 $taxData = $this->taxCreate->taxDataGenerate($oddTaxData[0], $context);
                 if ($taxData['type'] === 'Success' && $taxData['responseCode'] === 200) {
                     $taxId = $taxData['taxData']['shopwareId'];
@@ -517,7 +511,7 @@ class ProductCreate
     public function mediaUpload($imageUrlArray, $checkExistsProductData, $context): array
     {
         $mediaIds = [];
-        if (!$checkExistsProductData) {
+        if (! $checkExistsProductData) {
             $productId = Uuid::randomHex();
         } else {
             $productId = $checkExistsProductData->getId();
@@ -541,7 +535,7 @@ class ProductCreate
                 $context
             )->first();
 
-            if (!$searchMedia) {
+            if (! $searchMedia) {
                 $mediaId = Uuid::randomHex();
                 $media = [
                     'id' => $mediaId,

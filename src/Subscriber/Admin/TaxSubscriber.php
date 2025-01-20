@@ -73,7 +73,7 @@ class TaxSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($taxToUpsert)) {
+                                if (! empty($taxToUpsert)) {
                                     $this->taxRepository->upsert($taxToUpsert, $context);
                                 }
                             }
@@ -169,7 +169,7 @@ class TaxSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteTaxData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $taxData = $this->buildTaxErrorData($apiItem);
                                     if ($taxData) {

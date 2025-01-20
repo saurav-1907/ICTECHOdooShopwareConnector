@@ -34,7 +34,7 @@ class DefaultCurrencyFetchController extends AbstractController
     {
         $currencyId = 'getAllCurrencyData';
         $currencyResponse = $this->currencyCreate->getCurrencyData($currencyId, $context);
-        if (!array_key_exists('responseCode', $currencyResponse)) {
+        if (! array_key_exists('responseCode', $currencyResponse)) {
             $responseData = [
                 'type' => 'Success',
                 'responseCode' => 200,

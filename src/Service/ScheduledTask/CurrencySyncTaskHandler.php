@@ -59,7 +59,7 @@ class CurrencySyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($currenciesToUpsert)) {
+                        if (! empty($currenciesToUpsert)) {
                             try {
                                 $this->currencyRepository->upsert($currenciesToUpsert, $context);
                             } catch (\Exception $e) {

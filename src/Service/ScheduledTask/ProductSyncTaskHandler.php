@@ -61,7 +61,7 @@ class ProductSyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($productToUpsert)) {
+                        if (! empty($productToUpsert)) {
                             $this->productRepository->upsert($productToUpsert, $context);
                         }
                     }

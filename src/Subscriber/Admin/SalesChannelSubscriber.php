@@ -76,7 +76,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($salesChannelToUpsert)) {
+                                if (! empty($salesChannelToUpsert)) {
                                     try {
                                      $this->salesChannelRepository->upsert($salesChannelToUpsert, $context);
                                     } catch (\Exception $e) {
@@ -186,7 +186,7 @@ class SalesChannelSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteSalesChannelData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $salesChannelData = $this->buildSalesChannelErrorData($apiItem);
                                     if ($salesChannelData) {

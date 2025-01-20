@@ -31,7 +31,7 @@ class DefaultCategoryFetchController extends AbstractController
     {
         $catId = 'getAllCatData';
         $categoryData = $this->categoryCreate->categoryInsert($catId, $context);
-        if (!array_key_exists('responseCode', $categoryData)) {
+        if (! array_key_exists('responseCode', $categoryData)) {
             $responseData = [
                 'type' => 'Success',
                 'responseCode' => 200,

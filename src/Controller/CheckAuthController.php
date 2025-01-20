@@ -47,7 +47,7 @@ class CheckAuthController extends AbstractController
         ]);
     }
 
-    public function checkApiAuthentication($apiUrl)
+    public function checkApiAuthentication($apiUrl): ?array
     {
         $apiResponse = $this->client->get(
             $apiUrl,

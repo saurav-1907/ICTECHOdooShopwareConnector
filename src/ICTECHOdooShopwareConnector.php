@@ -9,7 +9,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
-use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Uuid\Uuid;
 
 class ICTECHOdooShopwareConnector extends Plugin
@@ -23,7 +22,7 @@ class ICTECHOdooShopwareConnector extends Plugin
             (new Criteria())
                 ->addFilter(new EqualsFilter('customFields.odoo_category_id', 0)),
             $installContext->getContext())->getIds();
-        if (!$category) {
+        if (! $category) {
             $categoryData = [
                 'id' => Uuid::randomHex(),
                 'name' => "Shopware Odoo",

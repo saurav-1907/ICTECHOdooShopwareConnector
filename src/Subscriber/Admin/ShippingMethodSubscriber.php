@@ -76,7 +76,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($shippingMethodToUpsert)) {
+                                if (! empty($shippingMethodToUpsert)) {
                                     try {
                                         $this->shippingMethodRepository->upsert($shippingMethodToUpsert, $context);
                                     } catch (\Exception $e) {
@@ -185,7 +185,7 @@ class ShippingMethodSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteShippingMethodData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $shippingMethodData = $this->buildShippingMethodErrorData($apiItem);
                                     if ($shippingMethodData) {

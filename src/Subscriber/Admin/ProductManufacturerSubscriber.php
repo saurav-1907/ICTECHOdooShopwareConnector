@@ -76,7 +76,7 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($productManufacturerToUpsert)) {
+                                if (! empty($productManufacturerToUpsert)) {
                                     try {
                                         $this->productManufacturerRepository->upsert($productManufacturerToUpsert, $context);
                                     } catch (\Exception $e) {
@@ -119,7 +119,7 @@ class ProductManufacturerSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteProductManufacturerData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $productManufacturerData = $this->buildProductManufacturerData($apiItem, $productManufacturerId);
                                     if ($productManufacturerData) {

@@ -75,7 +75,7 @@ class LanguageSubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($languagesToUpsert)) {
+                                if (! empty($languagesToUpsert)) {
                                     try {
                                       $this->languageRepository->upsert($languagesToUpsert, $context);
                                     } catch (\Exception $e) {
@@ -199,7 +199,7 @@ class LanguageSubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteLanguageData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $languageData = $this->buildLanguageErrorData($apiItem);
                                     if ($languageData) {

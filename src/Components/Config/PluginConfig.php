@@ -12,9 +12,8 @@ class PluginConfig
 {
     public function __construct(
         private readonly SystemConfigService $systemConfigService,
-        private readonly EntityRepository    $stateMachineRepository,
-    )
-    {
+        private readonly EntityRepository $stateMachineRepository,
+    ) {
     }
 
     public function fetchPluginConfigUrlData(Context $context): string

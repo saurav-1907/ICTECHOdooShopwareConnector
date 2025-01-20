@@ -75,7 +75,7 @@ class CurrencySubscriber implements EventSubscriberInterface
                                         }
                                     }
                                 }
-                                if (!empty($currenciesToUpsert)) {
+                                if (! empty($currenciesToUpsert)) {
                                     try {
                                         $this->currencyRepository->upsert($currenciesToUpsert, $context);
                                     } catch (\Exception $e) {
@@ -184,7 +184,7 @@ class CurrencySubscriber implements EventSubscriberInterface
                         $apiResponseData = $this->checkApiAuthentication($odooUrl, $odooToken, $deleteCurrencyData);
                         if ($apiResponseData['result']) {
                             $apiData = $apiResponseData['result'];
-                            if (!$apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
+                            if (! $apiData['success'] && isset($apiData['data']) && is_array($apiData['data'])) {
                                 foreach ($apiData['data'] as $apiItem) {
                                     $currencyData = $this->buildCurrencyErrorData($apiItem);
                                     if ($currencyData) {

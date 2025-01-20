@@ -57,7 +57,7 @@ class TaxSyncTaskHandler extends ScheduledTaskHandler
                             }
                         }
                     }
-                    if (!empty($taxToUpsert)) {
+                    if (! empty($taxToUpsert)) {
                         $this->taxRepository->upsert($taxToUpsert, $context);
                     }
                 }

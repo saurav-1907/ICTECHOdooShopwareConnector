@@ -59,7 +59,7 @@ class CustomerGroupSyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($customerGroupToUpsert)) {
+                        if (! empty($customerGroupToUpsert)) {
                             $this->customerGroupRepository->upsert($customerGroupToUpsert, $context);
                         }
                     }

@@ -59,7 +59,7 @@ class SalesChannelSyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($salesChannelsToUpsert)) {
+                        if (! empty($salesChannelsToUpsert)) {
                             try {
                                 $this->salesChannelRepository->upsert($salesChannelsToUpsert, $context);
                             } catch (\Exception $e) {

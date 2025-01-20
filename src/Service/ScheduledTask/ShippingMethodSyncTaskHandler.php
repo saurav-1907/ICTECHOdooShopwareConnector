@@ -58,7 +58,7 @@ class ShippingMethodSyncTaskHandler extends ScheduledTaskHandler
                                 }
                             }
                         }
-                        if (!empty($shippingMethodToUpsert)) {
+                        if (! empty($shippingMethodToUpsert)) {
                             try {
                                 $this->shippingMethodRepository->upsert($shippingMethodToUpsert, $context);
                             } catch (\Exception $e) {

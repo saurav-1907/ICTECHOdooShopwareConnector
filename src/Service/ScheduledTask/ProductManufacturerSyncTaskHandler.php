@@ -60,7 +60,7 @@ class ProductManufacturerSyncTaskHandler extends ScheduledTaskHandler
                             }
                         }
                     }
-                    if (!empty($productManufacturerToUpsert)) {
+                    if (! empty($productManufacturerToUpsert)) {
                         try {
                             $this->productManufacturerRepository->upsert($productManufacturerToUpsert, $context);
                         } catch (\Exception $e) {

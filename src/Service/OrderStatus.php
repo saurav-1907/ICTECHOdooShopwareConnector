@@ -110,7 +110,7 @@ class OrderStatus
     public function getContext(string $orderId, Context $context): Context
     {
         $order = $this->orderRepository->search(new Criteria([$orderId]), $context)->first();
-        if (!$order instanceof OrderEntity) {
+        if (! $order instanceof OrderEntity) {
             throw OrderException::orderNotFound($orderId);
         }
 
@@ -144,7 +144,7 @@ class OrderStatus
             ->search($orderCriteria, $context)
             ->first();
 
-        if (!$order instanceof OrderEntity) {
+        if (! $order instanceof OrderEntity) {
             throw OrderException::orderNotFound($orderId);
         }
         return $order;
@@ -363,7 +363,7 @@ class OrderStatus
                 $context
             );
             $toPlace = $stateMachineStates->get('toPlace');
-            if (!$toPlace) {
+            if (! $toPlace) {
                 throw StateMachineException::stateMachineStateNotFound('order_delivery', $transition);
             }
             $orderState = $orderDelivery->getOrder()->getStateMachineState();
@@ -421,7 +421,7 @@ class OrderStatus
             $context
         );
         $toPlace = $stateMachineStates->get('toPlace');
-        if (!$toPlace) {
+        if (! $toPlace) {
             throw StateMachineException::stateMachineStateNotFound('order', $transition);
         }
         return [

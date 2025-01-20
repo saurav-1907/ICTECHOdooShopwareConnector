@@ -166,7 +166,7 @@ class CustomerService
             $updateCustomerData = $this->replaceCustomerArray($updateCustomerData, 'countryId', 'country');
             $updateCustomerData['country'] = $countryName;
         }
-        if (!array_key_exists('customerId', $updateCustomerData)) {
+        if (! array_key_exists('customerId', $updateCustomerData)) {
             return $updateCustomerData;
         }
         return $this->getDefaultCustomerAddress($updateCustomerData, $context);

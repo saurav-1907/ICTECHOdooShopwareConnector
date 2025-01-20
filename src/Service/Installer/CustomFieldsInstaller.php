@@ -800,7 +800,7 @@ class CustomFieldsInstaller
         for ($i = 0; $i < $customFieldCount; $i++) {
             $name = self::CUSTOM_FIELDSET_NAME[$i];
             $getReferralCustomFieldSet = $this->getCustomFieldSetIds($name, $context);
-            if (!$getReferralCustomFieldSet) {
+            if (! $getReferralCustomFieldSet) {
                 $this->customFieldSetRepository->upsert([
                     self::CUSTOM_FIELDSET[$i]
                 ], $context);
